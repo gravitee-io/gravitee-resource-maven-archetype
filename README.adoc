@@ -1,0 +1,164 @@
+= gravitee-resource-maven-archetype
+
+ifdef::env-github[]
+image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-resource-maven-archetype/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-resource-maven-archetype/"]
+image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+endif::[]
+
+Maven Archetype to create a Gravitee Resource
+
+== Get started
+
+A Resource is a step in the Request/Response Gateway proxy chain. A Resource acts as a *proxy controller* by guaranteeing if a given business rule is fulfilled during the Request/Response processing.
+
+Archetype is already registered into the http://central.sonatype.org/pages/ossrh-guide.html[OSS repositories]. Don't forget to activate them in your Maven settings.
+
+== Resource generation
+
+Suppose you want to create a Resource that control if request contains the ``X-Foo`` header. Let's name it the *Foo header check resource*. Then you could generate your Resource like this:
+
+```bash
+mvn archetype:generate\
+ -DarchetypeGroupId=io.gravitee.maven.archetypes\
+ -DarchetypeArtifactId=gravitee-resource-maven-archetype\
+ -DarchetypeVersion=1.1.0\
+ -DartifactId=foo-header-check-resource\
+ -DgroupId=my.gravitee.extension.resource\
+ -Dversion=1.0.0-SNAPSHOT\
+ -DresourceName=FooHeaderCheck
+```
+
+Once executed and parameters confirmed, the above command will create the ``foo-header-check-resource`` directory containing the following structure:
+
+```
+.
+├── pom.xml
+├── README.md
+└── src
+    ├── assembly
+    │   └── resource-assembly.xml
+    ├── main
+    │   ├── java
+    │   │   └── my
+    │   │       └── gravitee
+    │   │           └── extension
+    │   │               └── resource
+    │   │                   ├── FooHeaderCheckResourceConfiguration.java
+    │   │                   └── FooHeaderCheckResource.java
+    │   └── resources
+    │       └── plugin.properties
+    └── test
+        └── java
+            └── my
+                └── gravitee
+                    └── extension
+                        └── resource
+                            └── FooHeaderCheckResourceTest.java
+```
+
+Hereafter a description about the different generated files:
+
+|===
+| File    | Description |
+
+| pom.xml | The main Maven POM file        |
+| README.md | The main entry point for documentation of the Resource      |
+| resource-assembly.xml | The common Maven assembly descriptor for any Policies |
+| FooHeaderCheckResourceConfiguration.java | The Resource configuration class |
+| FooHeaderCheckResource.java | The Resource class, from which the business behavior is implemented |
+| plugin.properties | The Resource descriptor file |
+| FooHeaderCheckResourceTest.java | The Resource unit test Java class |
+|===
+
+=== pom.xml
+
+Each Resource (and more generally any Gravitee projects) is https://maven.apache.org/[Maven] managed. Thus, a Resource project is described by using the Maven https://maven.apache.org/pom.html[Project Object Model] file.
+
+=== README.md
+
+Each Resource should have a dedicated `README.md` file to document it. The `README.md` file should contain everything related to the use of your Resource: *What is its functionality? How can use it? How can configure it?*
+
+=== resource-assembly.xml
+
+A Resource is just a kind of Gravitee Plugin.
+
+It  can be plugged to the [Gravitee Gateway](https://github.com/gravitee-io/gravitee-gateway) by using the distribution file built from the `resource-assembly.xml` file.
+
+Based on our *FooHeaderCheck* Resource, the distribution file structure is the following:
+
+```
+.
+├── foo-header-check-resource-1.0.0-SNAPSHOT.jar
+├── lib
+└── schemas
+    └── urn:jsonschema:my:gravitee:extension:resource:FooHeaderCheckResourceConfiguration.json
+```
+
+Hereafter a description about the different generated files:
+
+| File    | Description | 
+|---------|-------------|
+| `foo-header-check-resource-1.0.0-SNAPSHOT.jar` | The main Resource jar file         |
+| `lib/` | Where the external dependencies are stored (from the [Maven POM file dependencies](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html)          |
+| `schemas/` | Where the JSON configuration schemas are stored          |
+
+==== JSON Configuration schemas
+
+Resource configuration is described inside one or several http://docs.oracle.com/javase/tutorial/javabeans/[Java Bean] classes (see the FooHeaderCheckResourceConfiguration.java example).
+
+During the packaging phase, each Resource configuration classes are processed to generate one or several http://json-schema.org/[JSON schema(s)] that will be read by the Gateway when the Resource will be plugged in.
+
+JSON schema generation is done thanks to the Gravitee's https://github.com/gravitee-io/json-schema-generator-maven-plugin[json-schema-generator-maven-plugin] Maven plugin.
+
+=== FooHeaderCheckResourceConfiguration.java
+
+The Resource configuration class.
+
+Resource configuration is described into one or several http://docs.oracle.com/javase/tutorial/javabeans/[Java Bean] class(es) where each attribute is a configuration parameter.
+
+During the package phase, Resource configuration is compiled into JSON Configuration schemas. These schemas are used to parse https://github.com/gravitee-io/gravitee-gateway[API definitions].
+
+Resource configuration is finally injected to the Resource class instance at runtime and then can be used during implementation.
+
+=== FooHeaderCheckResource.java
+
+The main Resource class. Contains business code that implements the Resource.
+
+=== plugin.properties
+
+As said, a Resource is a kind of Gravitee Plugin.
+
+Each Plugin is described by the *plugin.properties* descriptor which declare the following parameters:
+
+|===
+| Parameter   | Description | Default value |
+
+| `id` | The Resource identifier     | Resource artifact id |
+| `name` | The Resource name     | N/A (mandatory parameter) |
+| `version` | The Resource version     | N/A (mandatory parameter) |
+| `description` | The Resource description     | "Description of the *Resource name* Gravitee Resource" |
+| `class` | The main Resource class     | Path to the generated class file |
+| `type` | The type of Gravitee Plugin     | `resource` |
+|===
+
+> A Resource is enabled when declared into the API definition. To do so, the Resource identifier is used to, as its name indicate, identify the Resource. Thus, **be ware to correctly choose the Resource identifier** from the beginning. It could be hard to rename it later if there are many of API definitions linked to it.
+
+=== FooHeaderCheckResourceTest.java
+ 
+The http://junit.org/[JUnit] unit test class for this Resource.
+
+== Tip
+
+Choose a short but clearly name for your Resource, **without precise the Resource suffix**. The `gravitee-resource-maven-archetype` will add it automatically.
+
+For example, **do not** fill the ``resourceName`` of your Resource like this:
+
+```
+-DresourceName=AmazingStuffResource
+```
+
+but like this:
+
+```
+-DresourceName=AmazingStuff
+```
