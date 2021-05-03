@@ -21,7 +21,7 @@ Suppose you want to create a Resource that control if request contains the ``X-F
 mvn archetype:generate\
  -DarchetypeGroupId=io.gravitee.maven.archetypes\
  -DarchetypeArtifactId=gravitee-resource-maven-archetype\
- -DarchetypeVersion=1.1.0\
+ -DarchetypeVersion=1.0.0\
  -DartifactId=foo-header-check-resource\
  -DgroupId=my.gravitee.extension.resource\
  -Dversion=1.0.0-SNAPSHOT\
